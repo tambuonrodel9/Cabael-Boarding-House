@@ -1,0 +1,12 @@
+{
+  "name": "Cabael Boarding House",
+  "short_name": "Cabael BH",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f5f7fb",
+  "theme_color": "#2563eb",
+  "description": "Responsive boarding house management and booking PWA",
+  "icons": [
+    {"src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable"}
+  ]
+}
