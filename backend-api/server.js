@@ -1,9 +1,8 @@
-
 const express = require('express');
 const cors = require('cors');
 
 const app = express();
-const PORT = process.env.PORT || 8080;
+const PORT = 8080;
 
 app.use(cors());
 app.use(express.json());
@@ -12,12 +11,8 @@ const products = [];
 let rooms = [];
 
 const roomStatus = (room) => {
-  const occupants = Array.isArray(room?.tenants)
-    ? room.tenants.length
-    : Number(room?.occupants || 0);
-
+  const occupants = Array.isArray(room?.tenants) ? room.tenants.length : Number(room?.occupants || 0);
   const capacity = Number(room?.capacity || 0);
-
   return occupants >= capacity ? 'Full' : 'Available';
 };
 
@@ -26,42 +21,27 @@ const cleanRoom = (room) => ({
   room: room?.number ?? room?.room ?? '',
   type: room?.gender ?? room?.type ?? '',
   capacity: Number(room?.capacity || 0),
-  occupants: Array.isArray(room?.tenants)
-    ? room.tenants.length
-    : Number(room?.occupants || 0),
+  occupants: Array.isArray(room?.tenants) ? room.tenants.length : Number(room?.occupants || 0),
   rent: Number(room?.rent || 0),
   status: roomStatus(room)
 });
 
 function printRoomStatus(action, room = null) {
   const normalizedAction = String(action || '').toUpperCase();
-
   console.log(`\n========== ROOM ${normalizedAction} ==========`);
 
   if (normalizedAction === 'DELETED') {
-    const availableRooms = rooms
-      .map(cleanRoom)
-      .filter(r => r.status === 'Available');
-
+    // After a delete, show ONLY the rooms that are still available.
+    const availableRooms = rooms.map(cleanRoom).filter(r => r.status === 'Available');
     console.log('AVAILABLE ROOMS AFTER DELETE');
     console.table(availableRooms);
   } else if (room) {
+    // For a single-room action, show ONLY the affected room.
     console.table([cleanRoom(room)]);
   }
 
   console.log('===================================\n');
 }
-
-app.get('/', (req, res) => {
-  res.send('BusGo Backend API is running!');
-});
-
-app.get('/api/health', (req, res) => {
-  res.json({
-    message: 'Hello Backend',
-    status: 'OK'
-  });
-});
 
 app.get('/api/product', (req, res) => {
   res.json(products);
@@ -69,55 +49,36 @@ app.get('/api/product', (req, res) => {
 
 app.post('/api/product', (req, res) => {
   const { name, price } = req.body;
-
-  const product = {
-    id: Date.now(),
-    name,
-    price
-  };
-
+  const product = { id: Date.now(), name, price };
   products.push(product);
-
-  console.log('Product created:', product);
-
+  console.log(product);
   res.status(201).json(product);
-});
-
-app.get('/api/rooms', (req, res) => {
-  res.json(rooms.map(cleanRoom));
 });
 
 app.post('/api/rooms/action', (req, res) => {
   const { action, room, rooms: incomingRooms } = req.body || {};
-
-  if (Array.isArray(incomingRooms)) {
-    rooms = incomingRooms;
-  }
+  if (Array.isArray(incomingRooms)) rooms = incomingRooms;
 
   const normalizedAction = String(action || 'UPDATED').toUpperCase();
-
-  const roomName = room?.number || room?.room || room?.id || 'Unknown';
-
   if (normalizedAction === 'DELETED') {
-    console.log(`[ROOM] DELETED | Room ${roomName}`);
+    console.log(`[ROOM] DELETED | Room ${room?.number || room?.room || room?.id}`);
     printRoomStatus('DELETED', room);
   } else if (normalizedAction === 'CREATED') {
-    console.log(`[ROOM] CREATED | Room ${roomName}`);
+    console.log(`[ROOM] CREATED | Room ${room?.number || room?.room || room?.id}`);
     printRoomStatus('CREATED', room);
   } else if (normalizedAction === 'UPDATED') {
-    console.log(`[ROOM] UPDATED | Room ${roomName}`);
+    console.log(`[ROOM] UPDATED | Room ${room?.number || room?.room || room?.id}`);
     printRoomStatus('UPDATED', room);
   } else {
-    console.log(`[ROOM] ${normalizedAction} | Room ${roomName}`);
+    console.log(`[ROOM] ${normalizedAction} | Room ${room?.number || room?.room || room?.id}`);
     printRoomStatus(normalizedAction, room);
   }
 
-  res.json({
-    ok: true,
-    action: normalizedAction,
-    room: room || null,
-    rooms
-  });
+  res.json({ ok: true, action: normalizedAction, room: room || null, rooms });
+});
+
+app.get('/api/rooms', (req, res) => {
+  res.json(rooms.map(cleanRoom));
 });
 
 app.listen(PORT, '0.0.0.0', () => {
