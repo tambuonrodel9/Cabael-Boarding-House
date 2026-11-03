@@ -8,7 +8,40 @@ app.use(cors());
 app.use(express.json());
 
 const products = [];
-let rooms = [];
+let rooms = [
+  {
+    id: 1,
+    number: "Room 101",
+    gender: "Male",
+    capacity: 4,
+    occupants: 2,
+    rent: 2500
+  },
+  {
+    id: 2,
+    number: "Room 102",
+    gender: "Female",
+    capacity: 4,
+    occupants: 3,
+    rent: 2500
+  },
+  {
+    id: 3,
+    number: "Room 103",
+    gender: "Male",
+    capacity: 2,
+    occupants: 0,
+    rent: 2000
+  },
+  {
+    id: 4,
+    number: "Room 104",
+    gender: "Female",
+    capacity: 2,
+    occupants: 2,
+    rent: 2000
+  }
+];
 
 const roomStatus = (room) => {
   const occupants = Array.isArray(room?.tenants) ? room.tenants.length : Number(room?.occupants || 0);
